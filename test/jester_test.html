@@ -431,7 +431,7 @@ function testInvalidSave() {
   assertEquals("First name can't be blank", user.errors[0]);
 
   var user = User.build();
-  user._setProperties({ 'id' : '1', 'first_name' : '' });
+  user._setProperties({ 'id' : 1, 'first_name' : '' });
   assert(! user.new_record());
 
   Ajax = { Request : function (url, options) {
@@ -500,7 +500,7 @@ function testSaveNewRecord() {
   assert(eric.new_record());
 
   Ajax = { Request : function (url, options) {
-    Ajax.Request.url_requested = url;
+    assertEquals(User._list_url(),url);
     this.transport = {
       status : 201,
       getResponseHeader : function (header) {return 'http://www.thoughtbot.com/users/1';}
@@ -508,7 +508,6 @@ function testSaveNewRecord() {
   }}
 
   assert(eric.save());
-  assertEquals(User._list_url(),Ajax.Request.url_requested);
   assertEquals(1, eric.id);
   assertEquals(1, eric.attributes().id);
 
@@ -521,7 +520,7 @@ function testSaveNewRecord() {
 }
 
 function testSaveExistingRecord() {
-  var eric = User.build({ 'id' : '1', 'first_name' : 'eric' });
+  var eric = User.build({ 'id' : 1, 'first_name' : 'eric' });
   assert(! eric.new_record());
 
   Ajax = { Request : function (url, options) {
@@ -537,23 +536,31 @@ function testSaveExistingRecord() {
 }
 
 function testSaveWithExtraParams() {
-  var eric = User.build({ 'id' : '1', 'first_name' : 'eric' });
+  var eric = User.build({ 'id' : 1, 'first_name' : 'eric' });
   assert(! eric.new_record());
-
   Ajax = { Request : function (url, options) {
-    assert(url.include("extraOption=blah"));
+    assert(!url.include("extraOption=blah"));
+    assert(!url.include("first_name=eric"));
+    assertEquals('blah',options.parameters.extraOption);
+    assertEquals(1,options.parameters["user[id]"]);
     this.transport = { status : 200 };
   }};
-
   assert(eric.save({extraOption: "blah"}));
-
   eric.save({extraOption: "blah"}, function(saved) {
     assert(saved);
     assert_changed();
   });
-
+  
+  Ajax = { Request : function (url, options) {
+    assert(url.include("extraOption=blah"));
+    assert(!url.include("first_name=eric"));
+    assert(!options.parameters.extraOption);
+    assertEquals(1,options.parameters["user[id]"]);
+    this.transport = { status : 200 };
+  }};
+  
   Resource.model("User", {defaultParams: {extraOption: "blah"}});
-  var eric = User.build({ 'id' : '1', 'first_name' : 'eric' });
+  var eric = User.build({ 'id' : 1, 'first_name' : 'eric' });
   assert(eric.save());
 }
 

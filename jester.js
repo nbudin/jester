@@ -595,20 +595,19 @@ Object.extend(Jester.Resource.prototype, {
     var objParams = {};
     var urlParams = Object.clone(this.klass._defaultParams);
     if (params) {
-      Object.extend(urlParams, params);
+      Object.extend(objParams, params);
     }
     (this._properties).each( bind(this, function(value, i) {
       objParams[this.klass._singular + "[" + value + "]"] = this[value];
-      urlParams[value] = this[value];
     }));
 
     // distinguish between create and update
     if (this.new_record()) {
-      url = this._create_url(urlParams);
+      url = this._create_url();
       method = "post";
     }
     else {
-      url = this._update_url(urlParams);
+      url = this._update_url();
       method = "put";
     }
 
