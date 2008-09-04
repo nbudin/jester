@@ -500,6 +500,7 @@ function testSaveNewRecord() {
   assert(eric.new_record());
 
   Ajax = { Request : function (url, options) {
+    Ajax.Request.url_requested = url;
     this.transport = {
       status : 201,
       getResponseHeader : function (header) {return 'http://www.thoughtbot.com/users/1';}
@@ -507,6 +508,7 @@ function testSaveNewRecord() {
   }}
 
   assert(eric.save());
+  assertEquals(User._list_url(),Ajax.Request.url_requested);
   assertEquals(1, eric.id);
   assertEquals(1, eric.attributes().id);
 
